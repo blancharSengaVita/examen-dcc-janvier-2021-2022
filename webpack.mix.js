@@ -3,7 +3,7 @@ let mix = require('laravel-mix');
 // eslint-disable-next-line no-undef
 require('laravel-mix-eslint');
 
-mix.sass('src/sass/style.scss', 'css/min.style.css').browserSync({
+mix.sass('src/sass/main.scss', 'css/min.style.css').browserSync({
   proxy: false,
   server: {
     baseDir: './'

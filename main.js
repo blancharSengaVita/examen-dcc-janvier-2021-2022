@@ -1,11 +1,11 @@
 const app = {
   initConst () {
-    this.appList = document.querySelector('.app');
+    this.cardList = document.querySelector('.app');
     this.fontDatalist = document.getElementById('fonts');
     this.informationScore = document.querySelector('.information__score');
     this.informationTime = document.querySelector('.information__time');
-    this.time = 20;
     this.score = 0;
+    this.time = 20;
     this.form = document.getElementById('play');
     this.fontInput = document.getElementById('font');
     this.familyInput = document.getElementById('family');
@@ -13,30 +13,27 @@ const app = {
     this.playAgainForm = document.getElementById('play-again');
   },
 
-  generateCard () {
+  generatedCard () {
     fonts.forEach((font) => {
-      this.appList.insertAdjacentHTML('beforeend', `<li data-font-name="${font.name}" data-family="${font.family}" class="app__item">
+      this.cardList.insertAdjacentHTML('beforeend', `
+  <li data-font-name="${font.name}" data-family="${font.family}" class="app__item">
   <div class="app__item__info"><span class="app__item__info__name">${font.name}</span>
     <span class="app__item__info__info">${font.family} - ${font.author}</span>
   </div>
   <img class="app__item__font" src="./assets/fonts/${font.file}.svg" alt="Aa, abcdefghijklmnopqrstuvwxyz, ABCDEFGHIJKLMNOPQRSTUVWXYZ">
-</li>`);
+</li>
+  `);
     });
   },
 
   fillDatalist () {
     fonts.forEach((font) => {
-      this.fontDatalist.insertAdjacentHTML('beforeend', `<option value="${font.name}"> </option>`);
+      this.fontDatalist.insertAdjacentHTML('beforeend', `<option value="${font.name}"></option>`);
     });
   },
 
   displayScore () {
-    this.informationScore.innerHTML = `${this.informationScore.dataset.text} <span>${this.score}/20</span>`;
-  },
-
-  displayTime () {
-    this.informationTime.innerHTML = `${this.informationTime.dataset.text} <span><time datetime="00:10">00:${this.zero(this.time)}</time></span>`;
-    this.time--;
+    this.informationScore.innerHTML = `${this.informationScore.dataset.text}  <span>${this.score}/20</span>`;
   },
 
   zero (number) {
@@ -46,74 +43,114 @@ const app = {
     return number;
   },
 
-  FormEventListener(){
+  displayTime () {
+    if (this.zero(this.time) === `00`) {
+      const currentCardClone1 = this.currentCardClone();
+      this.afterPlay(this.currentCard(), currentCardClone1);
+      this.cardError(this.currentCard());
+    }
+    this.informationTime.innerHTML = `${this.informationTime.dataset.text}  <time datetime="00:10">00:${this.zero(this.time)}</time>`;
+    this.time--;
+  },
+
+  currentCard () {
+    return document.querySelector('.app__item:last-child');
+  },
+
+  currentCardClone () {
+    return this.currentCard().cloneNode(true);
+  },
+
+  formEventListener(){
     this.form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const currentCard = document.querySelector('.app__item:last-child');
-      if (this.fontInput.value === currentCard.dataset.fontName && this.familyInput.value === currentCard.dataset.family) {
-        this.time = 20;
+      this.currentCard();
+      const currentCardClone1 = this.currentCardClone();
+      if (this.currentCard().dataset.fontName === this.fontInput.value && this.currentCard().dataset.family === this.familyInput.value) {
         this.score++;
-        currentCard.classList.add('app__item--move');
-        currentCard.classList.add('app__item--move--success');
-      } else if (this.fontInput.value === currentCard.dataset.fontName || this.familyInput.value === currentCard.dataset.family) {
-        this.wrongCards.insertAdjacentElement('beforeend', currentCard.cloneNode(true));
-        this.time = 20;
+        this.cardSuccess(this.currentCard());
+      } else if (this.currentCard().dataset.fontName === this.fontInput.value || this.currentCard().dataset.family === this.familyInput.value) {
         this.score += 0.5;
-        currentCard.classList.add('app__item--move');
-        currentCard.classList.add('app__item--move--error');
+        this.cardError(this.currentCard());
       } else {
-        this.wrongCards.insertAdjacentElement('beforeend', currentCard.cloneNode(true));
-        this.time = 20;
-        currentCard.classList.add('app__item--move');
-        currentCard.classList.add('app__item--move--error');
+        this.cardError(this.currentCard());
       }
-      this.displayScore();
-      this.displayTime();
 
-      currentCard.addEventListener('transitionend', (e) => {
-        e.currentTarget.remove();
-        if (this.appList.childElementCount === 0) {
-          this.playAgainForm.classList.toggle('play--again--hidden');
-        }
-      });
-
-      this.familyInput.value = '';
-      this.fontInput.value = '';
-      this.familyInput.focus();
+      this.afterPlay(this.currentCard(), currentCardClone1);
     });
   },
 
+  afterPlay(currentCard, currentCardClone) {
+    this.displayScore();
+    this.time = 21;
+    this.displayTime();
+    currentCard.addEventListener('transitionend', () => {
+      currentCard.remove();
+      this.wrongCards.insertAdjacentElement('beforeend', currentCardClone);
+      if (this.cardList.childElementCount === 0) {
+        clearInterval(setInterval(this.displayTime, 1000));
+        this.playAgainForm.classList.toggle('play--again--hidden');
+      }
+    });
+  },
 
+  cardSuccess (card) {
+    card.classList.add('app__item--move');
+    card.classList.add('app__item--move--success');
+  },
 
-  playAgainForm(){
-    this.playAgainForm.addEventListener('submit', (e) => {
-      e.preventDefault();
+  cardError (card) {
+    card.classList.add('app__item--move');
+    card.classList.add('app__item--move--error');
+  },
+
+  playAgain(){
+    this.playAgainForm.addEventListener('submit', () => {
       this.playAgainForm.classList.toggle('play--again--hidden');
-      this.generateCard();
-      this.score = 0;
+      setInterval(this.displayTime, 1000);
       this.time = 20;
+      this.score = 0;
+      this.generatedCard();
+      this.displayTime();
+      this.displayScore();
     });
   },
 
   init () {
     this.initConst();
-    this.generateCard();
+    this.generatedCard();
     this.fillDatalist();
     this.displayScore();
     this.displayTime();
-    this.FormEventListener();
-    this.playAgainForm()
+    setInterval(() => this.displayTime(), 1000);
+    this.formEventListener();
+    this.playAgain();
   }
 };
 
 app.init();
 
 
+// In the init method, where you set the interval for displayTime, you need to bind this to the function to ensure that the correct this context is maintained. You can achieve this using the bind method or by using an arrow function:
+//
+//   javascript
+// Copy code
+// setInterval(this.displayTime.bind(this), 1000);
+//
+// // OR
+//
+// setInterval(() => this.displayTime(), 1000);
+// By binding this, you ensure that the displayTime method is called with the correct context, and the app object properties will be available, preventing the "Cannot read properties of undefined" error.
 
 
 
 
-//apres le transitionnend on doit cloner la carte fausse et l'envoyer dans la liste du bas (.wrong-cards)
+
+
+
+
+
+
 
 
 
