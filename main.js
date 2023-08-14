@@ -1,94 +1,120 @@
-// Nom    :
-// Prénom :
-// Groupe : 2285
-const app = document.querySelector('.app');
-const nameDatalist = document.getElementById('fonts');
-const familyInput = document.getElementById('family');
-const fontInput = document.getElementById('font');
-const informationScore = document.querySelector('.information__score');
-const informationTime = document.querySelector('.information__time');
-const form = document.querySelector('#play');
-const playAgainForm = document.querySelector('#play-again');
-const wrongCards = document.querySelector('.wrong-cards');
-let counter = 20;
-let score = 0;
+const app = {
+  initConst () {
+    this.appList = document.querySelector('.app');
+    this.fontDatalist = document.getElementById('fonts');
+    this.informationScore = document.querySelector('.information__score');
+    this.informationTime = document.querySelector('.information__time');
+    this.time = 20;
+    this.score = 0;
+    this.form = document.getElementById('play');
+    this.fontInput = document.getElementById('font');
+    this.familyInput = document.getElementById('family');
+    this.wrongCards = document.querySelector('.wrong-cards');
+    this.playAgainForm = document.getElementById('play-again');
+  },
 
-function generateCard(){
-  for (const font of fonts) {
-    app.insertAdjacentHTML('beforeend', `<li data-font-name="${font.name}" data-family="${font.family}" class='app__item'>
+  generateCard () {
+    fonts.forEach((font) => {
+      this.appList.insertAdjacentHTML('beforeend', `<li data-font-name="${font.name}" data-family="${font.family}" class="app__item">
   <div class="app__item__info"><span class="app__item__info__name">${font.name}</span>
     <span class="app__item__info__info">${font.family} - ${font.author}</span>
   </div>
-  <img class='app__item__font' src='./assets/fonts/${font.file}.svg' alt='Aa, abcdefghijklmnopqrstuvwxyz, ABCDEFGHIJKLMNOPQRSTUVWXYZ'>
+  <img class="app__item__font" src="./assets/fonts/${font.file}.svg" alt="Aa, abcdefghijklmnopqrstuvwxyz, ABCDEFGHIJKLMNOPQRSTUVWXYZ">
 </li>`);
+    });
+  },
 
-    nameDatalist.insertAdjacentHTML('beforeend', `<option value="${font.name}">`);
-  }
-}
-generateCard();
+  fillDatalist () {
+    fonts.forEach((font) => {
+      this.fontDatalist.insertAdjacentHTML('beforeend', `<option value="${font.name}"> </option>`);
+    });
+  },
 
-informationScore.insertAdjacentHTML('beforeend', `<span>${informationScore.dataset.text}  ${score}/20</span>`);
-informationTime.insertAdjacentHTML('beforeend', `<span> ${informationTime.dataset.text} ${counter}</span> `);
+  displayScore () {
+    this.informationScore.innerHTML = `${this.informationScore.dataset.text} <span>${this.score}/20</span>`;
+  },
 
-function decrementTime(){
-  counter--;
-  informationTime.firstChild.textContent = `${informationTime.dataset.text} ${zeros(counter)}`;
-  //on peut aussi ecrire
-  //informationTime.textContent = `<span> ${informationTime.dataset.text} ${zeros(second)}</span> `;
-}
+  displayTime () {
+    this.informationTime.innerHTML = `${this.informationTime.dataset.text} <span><time datetime="00:10">00:${this.zero(this.time)}</time></span>`;
+    this.time--;
+  },
 
-setInterval(decrementTime,1000)
-
-function zeros(number) {
-  if (number <= 9) {
-    return "0" + number;
-  }
-  return number;
-}
-
-function displayScore (){
-  informationScore.firstChild.textContent = `${informationScore.dataset.text}  ${score}/20`
-}
-
-
-form.addEventListener('submit', (e)=>{
-  e.preventDefault();
-  let currentCard = app.querySelector('.app__item:last-child');
-
-  if (fontInput.value === currentCard.dataset.fontName && familyInput.value === currentCard.dataset.family){
-    score++
-    counter = 20;
-    displayScore();
-     currentCard.classList.add('app__item--move');
-     currentCard.classList.add('app__item--move--success');
-  } else if (fontInput.value === currentCard.dataset.fontName || familyInput.value === currentCard.dataset.family){
-    wrongCards.insertAdjacentElement('afterbegin', currentCard.cloneNode(true));
-    currentCard.classList.add('app__item--move');
-    currentCard.classList.add('app__item--move--error');
-    score+=0.5
-    counter = 21;
-    displayScore();
-  } else {
-    wrongCards.insertAdjacentElement('afterbegin', currentCard.cloneNode(true));
-    currentCard.classList.add('app__item--move');
-    currentCard.classList.add('app__item--move--error');
-    counter = 21;
-  }
-
-  currentCard.addEventListener('transitionend', (e)=>{
-    e.currentTarget.remove();
-    if (app.childElementCount === 0){
-      playAgainForm.classList.toggle('play--again--hidden');
+  zero (number) {
+    if (number < 10) {
+      return `0${number}`;
     }
-  })
+    return number;
+  },
+
+  FormEventListener(){
+    this.form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const currentCard = document.querySelector('.app__item:last-child');
+      if (this.fontInput.value === currentCard.dataset.fontName && this.familyInput.value === currentCard.dataset.family) {
+        this.time = 20;
+        this.score++;
+        currentCard.classList.add('app__item--move');
+        currentCard.classList.add('app__item--move--success');
+      } else if (this.fontInput.value === currentCard.dataset.fontName || this.familyInput.value === currentCard.dataset.family) {
+        this.wrongCards.insertAdjacentElement('beforeend', currentCard.cloneNode(true));
+        this.time = 20;
+        this.score += 0.5;
+        currentCard.classList.add('app__item--move');
+        currentCard.classList.add('app__item--move--error');
+      } else {
+        this.wrongCards.insertAdjacentElement('beforeend', currentCard.cloneNode(true));
+        this.time = 20;
+        currentCard.classList.add('app__item--move');
+        currentCard.classList.add('app__item--move--error');
+      }
+      this.displayScore();
+      this.displayTime();
+
+      currentCard.addEventListener('transitionend', (e) => {
+        e.currentTarget.remove();
+        if (this.appList.childElementCount === 0) {
+          this.playAgainForm.classList.toggle('play--again--hidden');
+        }
+      });
+
+      this.familyInput.value = '';
+      this.fontInput.value = '';
+      this.familyInput.focus();
+    });
+  },
 
 
-});
+
+  playAgainForm(){
+    this.playAgainForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      this.playAgainForm.classList.toggle('play--again--hidden');
+      this.generateCard();
+      this.score = 0;
+      this.time = 20;
+    });
+  },
+
+  init () {
+    this.initConst();
+    this.generateCard();
+    this.fillDatalist();
+    this.displayScore();
+    this.displayTime();
+    this.FormEventListener();
+    this.playAgainForm()
+  }
+};
+
+app.init();
 
 
-playAgainForm.addEventListener('submit', (e)=>{
-  e.currentTarget.classList.toggle('play--again--hidden');
-  generateCard();
-  counter = 20;
-  score = 0;
-})
+
+
+
+
+//apres le transitionnend on doit cloner la carte fausse et l'envoyer dans la liste du bas (.wrong-cards)
+
+
+
+

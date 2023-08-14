@@ -118,5 +118,5 @@ window.fonts = [
         file: "benguiat",
         family: "Manuaires",
         author: "Edward Benguiat"
-    }
+    },
 ]
